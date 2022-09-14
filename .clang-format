@@ -1,0 +1,37 @@
+BasedOnStyle: LLVM
+AccessModifierOffset: '-4'
+AllowShortBlocksOnASingleLine: 'true'
+AllowShortCaseLabelsOnASingleLine: 'true'
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: Always
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: 'true'
+AlwaysBreakBeforeMultilineStrings: 'false'
+AlwaysBreakTemplateDeclarations: 'Yes'
+BinPackArguments: 'false'
+BinPackParameters: 'false'
+BreakBeforeBraces: Attach
+BreakConstructorInitializers: AfterColon
+CompactNamespaces: 'false'
+IndentWidth: 4
+KeepEmptyLinesAtTheStartOfBlocks: 'false'
+MaxEmptyLinesToKeep: '3'
+NamespaceIndentation: All
+PenaltyBreakBeforeFirstCallParameter: '10'
+PointerAlignment: Left
+ReflowComments: 'false'
+SortIncludes: 'true'
+SpacesBeforeTrailingComments: '1'
+TabWidth: 4
+UseTab: 'Never'
+# AlignTrailingComments: 'true'
+AlignAfterOpenBracket: 'BlockIndent'
+AlwaysBreakAfterReturnType: 'None'
+SortUsingDeclarations: 'true'
+PenaltyReturnTypeOnItsOwnLine: '999999'
+IndentCaseLabels: 'true'
+IndentPPDirectives: 'BeforeHash'
+ColumnLimit: 120
+# AlignArrayOfStructures: 'Left'
+InsertTrailingCommas: 'Wrapped'
+# IndentPragmas: 'AfterHash'
