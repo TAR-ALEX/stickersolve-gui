@@ -17,12 +17,13 @@ endif(WIN32)
 include_directories(${PROJECT_SOURCE_DIR}/include/, ${PROJECT_SOURCE_DIR}/vendor/include/) 
 link_directories(${PROJECT_SOURCE_DIR}/vendor/lib)
 
-file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.h" "${PROJECT_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.h" "${PROJECT_SOURCE_DIR}/src/*.hpp" "${PROJECT_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE VENDOR_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/vendor/src/*.h" "${PROJECT_SOURCE_DIR}/vendor/src/*.hpp" "${PROJECT_SOURCE_DIR}/vendor/src/*.cpp")
 
 # creates ./build/bin/runner
-add_executable(${PROJECT_NAME} ${APP_SOURCES})
+add_executable(${PROJECT_NAME} ${APP_SOURCES} ${VENDOR_SOURCES})
 target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
-target_link_libraries(${PROJECT_NAME} Qt5PrintSupport Qt5Network Qt5Widgets Qt5Gui Qt5Core)
+target_link_libraries(${PROJECT_NAME} pthread Qt5PrintSupport Qt5Network Qt5Widgets Qt5Gui Qt5Core -l:libboost_system.a -l:libboost_iostreams.a -l:libboost_filesystem.a)
 
 # shared library
 # set(LIBRARY_NAME World)

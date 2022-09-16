@@ -15,7 +15,7 @@ C_CCFlags=$(CCFLAGS)
 # -L"${CURDIR}/vendor/lib"
 # LDFLAGS= -fPIC -L"${CURDIR}/vendor/lib" -lpthread -l:libQt5Quick.so.5 -l:libQt5PrintSupport.so.5 -l:libQt5Qml.so.5 -l:libQt5Network.so.5 -l:libQt5Widgets.so.5 -l:libQt5Gui.so.5 -l:libQt5Core.so.5
 # LDFLAGS= -fPIC -L"${CURDIR}/vendor/lib" -lpthread -l:libQt5PrintSupport.so.5 -l:libQt5Network.so.5 -l:libQt5Widgets.so.5 -l:libQt5Gui.so.5 -l:libQt5Core.so.5
-LDFLAGS= -Wl,-rpath="./vendor/lib" -fPIC -L"${CURDIR}/vendor/lib" -lpthread -lQt5PrintSupport -lQt5Network -lQt5Widgets -lQt5Gui -lQt5Core
+LDFLAGS= -Wl,-rpath="./vendor/lib" -fPIC -L"${CURDIR}/vendor/lib" -lpthread -lQt5PrintSupport -lQt5Network -lQt5Widgets -lQt5Gui -lQt5Core -l:libboost_system.a -l:libboost_iostreams.a -l:libboost_filesystem.a
 
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src

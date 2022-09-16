@@ -30,7 +30,7 @@ private:
 public:
     using QWidget::QWidget;
     QPolygonF polygon;
-    QColor color{127, 127, 127};
+    jptr<QColor> color{127, 127, 127};
     std::function<void(PolygonButton* self, Qt::MouseButtons)> onClick = [](auto, auto) {};
 
     virtual void mousePressEvent(QMouseEvent* event) {
@@ -47,34 +47,31 @@ public:
     void paintEvent(QPaintEvent* p) {
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
-        painter.setBrush(color);
+        painter.setBrush(color.value());
         painter.setPen(QPen(Qt::black, 2));
         painter.drawPolygon(scaledPolygon());
     }
 };
 
 class PuzzleTiled : public QWidget {
-protected:
-    double aspectWH = 2.0;
-
 public:
     PuzzleTiled(QWidget* parent) : QWidget(parent) {}
 
     std::vector<rptr<PolygonButton>> tiles;
-    QColor activeColor{0, 0, 0};
-    QColor defaultColor{127, 127, 127};
+    jptr<QColor> activeColor{0, 0, 0};
+    jptr<QColor> defaultColor{127, 127, 127};
 
-    std::vector<QColor> getColors() {
-        std::vector<QColor> result;
+    std::vector<jptr<QColor>> getColors() {
+        std::vector<jptr<QColor>> result;
         for (auto& tile : tiles) { result.push_back(tile->color); }
         return result;
     }
 
     void paintEvent(QPaintEvent* p) {
-        for (auto tile : tiles) {
-            tile->setFixedWidth(width());
-            tile->setFixedHeight(height());
-        }
+        int width = this->width();
+        int height = this->height();
+
+        for (auto tile : tiles) { tile->resize(width, height); }
     }
     virtual void mousePressEvent(QMouseEvent* event) {
         for (auto& tile : tiles) {
@@ -119,7 +116,8 @@ public:
 };
 
 template <int order = 3>
-class PuzzleCube : public PuzzleTiled {
+// class PuzzleCube : public PuzzleTiled {
+    class PuzzleCube : public PuzzleTiled {
 private:
     void addGrid(double xStart, double yStart, double scaleX, double scaleY, double skewX, double skewY) {
         std::vector<rptr<PolygonButton>> tmp;
@@ -136,6 +134,7 @@ private:
                         {xStart + x + (skewX * (y + 1)), yStart + 1 + y + (skewY * x)},
                     },
                 };
+                tile->color = this->defaultColor;
                 tmp.push_back(tile);
             }
         }
@@ -151,7 +150,9 @@ private:
     rptr<QWidget> subWidget;
 
 public:
-    PuzzleCube(QWidget* parent) : PuzzleTiled(parent) {
+    PuzzleCube(jptr<QColor> defaultColor, QWidget* parent = nullptr) : PuzzleTiled(parent) {
+        this->defaultColor = defaultColor;
+
         addGrid(1.5, 0, 1, 0.5, -0.5, 0);
         addGrid(0, 1.5, 1, 1, 0, 0);
         addGrid(3, 1.5, 0.5, 1, 0, -0.5);
@@ -160,8 +161,6 @@ public:
         addGrid(-3, 1.5, 1, 1, 0, 0);
         addGrid(0, 4.5, 1, 1, 0, 0);
 
-        this->aspectWH = 10.5 / 7.5;
-
         normalize();
 
         int i = 0;
@@ -169,9 +168,9 @@ public:
             tile->onClick = [=](auto self, auto mouseButtons) {
                 cout << "tiles[" << i << "].onClick\n";
                 if (mouseButtons == Qt::MouseButton::LeftButton) {
-                    self->color = activeColor;
+                    self->color = this->activeColor;
                 } else {
-                    self->color = defaultColor;
+                    self->color = this->defaultColor;
                 }
             };
             i++;
@@ -183,8 +182,8 @@ public:
         double width = this->width();
         double height = this->height();
 
-        double scaledW = width/2.5;
-        double scaledH = height/2.5;
+        double scaledW = width / 2.5;
+        double scaledH = height / 2.5;
 
         double offsetX = width - scaledW;
         double offsetY = height - scaledH;

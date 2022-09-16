@@ -1,6 +1,5 @@
 /build/
 /.vscode/
 /example
-/vendor/include/boost
-/vendor/lib
+/vendor/
 
