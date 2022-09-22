@@ -9,12 +9,12 @@ deb qtbase5-dev "./lib/" "./vendor/lib/",
 deb-recurse-limit 2,
 deb libgl-dev "./usr/include/GL/" "./vendor/include/GL/",
 
-(deb qtbase5-dev "./" "./vendor/all-qt",)
+(deb qtbase5-dev "./" "./vendor/all-qt/",)
 
 git "https://github.com/TAR-ALEX/clone_ptr_cpp.git" master "./include/" "./vendor/include/",
 
 git "https://github.com/TAR-ALEX/stickersolve.git" master "./include/" "./vendor/include/",
-git "https://github.com/TAR-ALEX/stickersolve.git" master "./src" "./vendor/src",
+git "https://github.com/TAR-ALEX/stickersolve.git" master "./src/" "./vendor/src/",
 git "https://github.com/TAR-ALEX/stickersolve.git" master "./vendor.txt" "./vendor/stickersolve.txt",
 
 git "https://github.com/TAR-ALEX/Semaphore.git" main "./include/" "./vendor/include/",

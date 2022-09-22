@@ -101,10 +101,7 @@ int main(int argc, char** argv) {
             for (auto& c : qcolors) { pzl.push_back(colorToId[c]); }
 
             Solver3x3 solver("U U2 U' R R2 R' F F2 F' D D2 D' L L2 L' B B2 B'");
-            solver.cfg->targetThreads = 16;
-            solver.pruningTableMasked.load();
-            solver.pruningTableClassic.load();
-            solver.redundancyTable.load();
+            solver.cfg->threadPool = new estd::thread_pool(16);
 
             // cout << "solver.pruningTableClassic.getStats()";
             // cout << "\n--------------------\n";
@@ -124,11 +121,6 @@ int main(int argc, char** argv) {
                 QString solutionString = QString((slnQ->pop()).c_str());
                 QMetaObject::invokeMethod(app.get(), [=] { text->append(solutionString); });
             }
-            
-            solver.pruningTableMasked.unload();
-            solver.pruningTableClassic.unload();
-            solver.redundancyTable.unload();
-
         });
         t.detach();
     });
