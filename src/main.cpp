@@ -101,21 +101,10 @@ int main(int argc, char** argv) {
             for (auto& c : qcolors) { pzl.push_back(colorToId[c]); }
 
             Solver3x3 solver("U U2 U' R R2 R' F F2 F' D D2 D' L L2 L' B B2 B'");
-            solver.cfg->threadPool = new estd::thread_pool(16);
+            solver.cfg->pruiningTablesPath = "./";
 
-            // cout << "solver.pruningTableClassic.getStats()";
-            // cout << "\n--------------------\n";
-            // cout << solver.pruningTableClassic.getStats();
-            // cout << "solver.pruningTable.getStats()";
-            // cout << "\n--------------------\n";
-            // cout << solver.pruningTableMasked.getStats();
-            // cout << "\n--------------------\n";
-            // cout << "solver.redundancyTable.getStats()";
-            // cout << "\n--------------------\n";
-            // cout << solver.redundancyTable.getStats();
-            // cout << "\n--------------------\n";
-
-            auto slnQ = solver.asyncSolveStrings(pzl, 15, -1);
+            auto slnQ = solver.asyncSolveStrings(pzl, 14, -1);
+            std::vector<std::string> res;
 
             while (slnQ->hasNext()) {
                 QString solutionString = QString((slnQ->pop()).c_str());
