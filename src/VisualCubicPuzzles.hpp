@@ -67,6 +67,11 @@ public:
         return result;
     }
 
+    void setColors(std::vector<jptr<QColor>> in) {
+        if (in.size() != tiles.size()) throw std::runtime_error("cannot set visual puzzle state, state size mismatch");
+        for (size_t i = 0; i < in.size(); i++) { tiles[i]->color = in[i]; }
+    }
+
     void paintEvent(QPaintEvent* p) {
         int width = this->width();
         int height = this->height();
@@ -117,7 +122,7 @@ public:
 
 template <int order = 3>
 // class PuzzleCube : public PuzzleTiled {
-    class PuzzleCube : public PuzzleTiled {
+class PuzzleCube : public PuzzleTiled {
 private:
     void addGrid(double xStart, double yStart, double scaleX, double scaleY, double skewX, double skewY) {
         std::vector<rptr<PolygonButton>> tmp;

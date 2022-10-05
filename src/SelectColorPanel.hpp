@@ -61,6 +61,7 @@ public:
                 }
                 this->color = self->color;
                 this->onClick(this, mouse);
+                this->parentWidget()->update();
             };
         }
 
@@ -71,6 +72,7 @@ public:
         colorPanel->onClick = [=](auto self, auto mouse) {
             this->color = self->color;
             this->onClick(this, mouse);
+            this->parentWidget()->update();
         };
         cube->addSubWidget(colorPanel);
         //layout.addWidget(colorPanel.get());

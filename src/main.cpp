@@ -18,92 +18,89 @@
 #include <stickersolve/puzzles/Solver3x3.h>
 #include <thread>
 #include <vector>
+#include "NxNeditor.hpp"
+
+// #include "../vendor/src/pruning/pruning.cpp"
+// #include "../vendor/src/pruning/pruningTree.cpp"
+// #include "../vendor/src/pruning/redundancy.cpp"
+
+// #include "../vendor/src/solver/puzzle.cpp"
+// #include "../vendor/src/solver/puzzleSolver.cpp"
+// #include "../vendor/src/solver/puzzleState.cpp"
 
 using namespace estd::shortnames;
 using namespace std;
 
-/// Given a map from keys to values, creates a new map from values to keys
-template <typename K, typename V>
-static map<V, K> reverseMap(const map<K, V>& m) {
-    map<V, K> r;
-    for (const auto& kv : m) r[kv.second] = kv.first;
-    return r;
-}
-
-map<int, jptr<QColor>> idToColor = {
-    {0, jptr<QColor>{0, 255, 0}},
-    {1, jptr<QColor>{255, 255, 0}},
-    {2, jptr<QColor>{255, 0, 0}},
-    {3, jptr<QColor>{255, 255, 255}},
-    {4, jptr<QColor>{255, 144, 0}},
-    {5, jptr<QColor>{0, 100, 255}},
-    {-1, jptr<QColor>{127, 127, 127}},
-};
-
-map<jptr<QColor>, int> colorToId = reverseMap(idToColor);
-
-
 int main(int argc, char** argv) {
     cptr<QApplication> app = new QApplication(argc, argv);
-
     cptr<QMainWindow> mw = new QMainWindow();
-    auto wid = new QWidget();
-    auto mainLayout = new QHBoxLayout(wid);
-    auto puzzleColumn = new QVBoxLayout(wid);
-    auto solutionsColumn = new QVBoxLayout(wid);
+    
+    auto wid = new EQLayoutWidget<QHBoxLayout>();
+    auto puzzleColumn = new QVBoxLayout();
+    auto solutionsColumn = new QVBoxLayout();
 
-    wid->setLayout(mainLayout);
-    mw->setCentralWidget(wid);
-    mainLayout->addLayout(puzzleColumn);
-    mainLayout->addLayout(solutionsColumn);
+    mw->setCentralWidget(new EQMarginWidget(wid));
+    wid->addLayout(puzzleColumn);
+    wid->addLayout(solutionsColumn);
 
     auto text = new QTextBrowser();
-    text->setMaximumWidth(500);
+    // text->setMaximumWidth(500);
     solutionsColumn->addWidget(text);
+    solutionsColumn->addWidget(new EQLayoutWidget<QHBoxLayout>({new QProgressBar(), new QPushButton("cancel")}));
 
-    //SelectColorCube SelectColorPanel{
-    auto colorPanel = new SelectColorCube{
-        {
-            idToColor[0],
-            idToColor[1],
-            idToColor[2],
-            idToColor[3],
-            idToColor[4],
-            idToColor[5],
-            idToColor[-1],
-        },
-        wid,
-    };
-    auto button2 = new QPushButton("save", wid);
-    auto cube = new PuzzleCube(colorPanel->availableColors.back(), wid);
-    cube->activeColor = colorPanel->color;
+    auto tlbx = new QTabWidget();
+    auto scramble = new NxNEditor<3>();
+    auto solvedState = new NxNEditor<3>();
+    tlbx->setMinimumSize(300,300);
+    tlbx->addTab(new EQMarginWidget(scramble), "Scramble");
+    tlbx->addTab(new EQMarginWidget(solvedState), "Solved State");
+    puzzleColumn->addWidget(tlbx);
+    Puzzle3x3 superflip;
+    superflip.applyMoves("U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2"); // superflip
+    scramble->setState(Puzzle3x3());
+    solvedState->setState(Puzzle3x3());
 
-    cube->addSubWidget(colorPanel);
+    puzzleColumn->addWidget(tlbx);
 
-    puzzleColumn->addWidget(button2);
-    // puzzleColumn->addWidget(cube);
-    puzzleColumn->addWidget(new AspectRatioWidget(cube, 10.5, 7.5));
+    auto configForm = new QFormLayout();
+
+    auto allowedMoves = new QLineEdit("U U2 U' R R2 R' F F2 F' D D2 D' L L2 L' B B2 B'");
+    auto applyMovesBtn = new QPushButton("apply");
+    auto applyMoves = new QLineEdit("");
+    auto searchDepth = new QSpinBox();
+    auto numSolutions = new QSpinBox();
+    searchDepth->setValue(14);
+    numSolutions->setValue(-1);
+    puzzleColumn->addLayout(configForm);
+    configForm->addRow(QObject::tr("Apply Moves:"), new EQLayoutWidget<QHBoxLayout>({applyMoves, applyMovesBtn}));
+    configForm->addRow(QObject::tr("Allowed Moves:"), allowedMoves);
+    configForm->addRow(QObject::tr("Search Depth:"), searchDepth);
+    configForm->addRow(QObject::tr("Number of Solutions:"), numSolutions);
+    auto solveBtn = new QPushButton("solve", wid);
+    puzzleColumn->addWidget(solveBtn);
 
     mw->show();
-    colorPanel->onClick = [&](auto self, auto mouseButtons) {
-        cout << "clicked(checked = " << mouseButtons << ");\n";
-        cube->activeColor = self->color;
-    };
 
-    QObject::connect(button2, &QPushButton::clicked, [&](bool checked) {
+    QObject::connect(applyMovesBtn, &QPushButton::clicked, [&](bool checked) {
+        Puzzle3x3 tmp;
+        tmp.state = scramble->getState();
+        tmp.applyMoves(applyMoves->text().toStdString());
+        scramble->setState(tmp);
+        scramble->update();
+    });
+
+    QObject::connect(solveBtn, &QPushButton::clicked, [&](bool checked) {
         QMetaObject::invokeMethod(app.get(), [=] { text->clear(); });
         std::thread t([&]() {
             QFile file("yourFile.png");
             file.open(QIODevice::WriteOnly);
-            cube->grab().save(&file, "PNG");
-            auto qcolors = cube->getColors();
-            State pzl;
-            for (auto& c : qcolors) { pzl.push_back(colorToId[c]); }
+            scramble->cube->grab().save(&file, "PNG");
+            State pzl = scramble->getState();
 
-            Solver3x3 solver("U U2 U' R R2 R' F F2 F' D D2 D' L L2 L' B B2 B'");
-            solver.cfg->pruiningTablesPath = "./";
+            Solver3x3 solver(allowedMoves->text().toStdString());
+            solver.cfg->pruiningTablesPath = "./tables";
 
-            auto slnQ = solver.asyncSolveStrings(pzl, 14, -1);
+            auto slnQ = solver.asyncSolveStrings(pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1);
             std::vector<std::string> res;
 
             while (slnQ->hasNext()) {
