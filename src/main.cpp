@@ -49,8 +49,9 @@ int main(int argc, char** argv) {
     solutionsColumn->addWidget(new EQLayoutWidget<QHBoxLayout>({new QProgressBar(), new QPushButton("cancel")}));
 
     auto tlbx = new QTabWidget();
-    auto scramble = new NxNEditor<3>();
     auto solvedState = new NxNEditor<3>();
+    auto scramble = new NxNEditor<3>(solvedState->idToColor);
+    
     tlbx->setMinimumSize(300,300);
     tlbx->addTab(new EQMarginWidget(scramble), "Scramble");
     tlbx->addTab(new EQMarginWidget(solvedState), "Solved State");

@@ -33,6 +33,34 @@ static std::map<V, K> reverseMap(const std::map<K, V>& m) {
 
 template <int order = 3>
 class NxNEditor : public AspectRatioWidget {
+private:
+    void init() {
+        cube = new PuzzleCube<order>(idToColor[-1], this);
+        this->setWidget(cube);
+
+        auto colorPanel = new SelectColorCube{
+            {
+                idToColor[0],
+                idToColor[1],
+                idToColor[2],
+                idToColor[3],
+                idToColor[4],
+                idToColor[5],
+                idToColor[-1],
+            },
+            cube,
+        };
+
+        cube->activeColor = colorPanel->color;
+
+        cube->addSubWidget(colorPanel);
+
+        colorPanel->onClick = [&](auto self, auto mouseButtons) {
+            cout << "clicked(checked = " << mouseButtons << ");\n";
+            cube->activeColor = self->color;
+        };
+    }
+
 public:
     PuzzleCube<order>* cube = nullptr;
     map<int, jptr<QColor>> idToColor = {
@@ -60,38 +88,14 @@ public:
         return qcolors;
     }
 
-    void setState(State s){
-        cube->setColors(stateToColors(s));
-    }
+    void setState(State s) { cube->setColors(stateToColors(s)); }
 
-    State getState(){
-        return colorsToState(cube->getColors());
-    }
+    State getState() { return colorsToState(cube->getColors()); }
 
-    NxNEditor(QWidget* parent = nullptr) : AspectRatioWidget(10.5, 7.5, parent){
-        cube = new PuzzleCube<order>(idToColor[-1], this);
-        this->setWidget(cube);
+    NxNEditor(QWidget* parent = nullptr) : AspectRatioWidget(10.5, 7.5, parent) { init(); }
 
-        auto colorPanel = new SelectColorCube{
-            {
-                idToColor[0],
-                idToColor[1],
-                idToColor[2],
-                idToColor[3],
-                idToColor[4],
-                idToColor[5],
-                idToColor[-1],
-            },
-            cube,
-        };
-
-        cube->activeColor = colorPanel->color;
-
-        cube->addSubWidget(colorPanel);
-
-        colorPanel->onClick = [&](auto self, auto mouseButtons) {
-            cout << "clicked(checked = " << mouseButtons << ");\n";
-            cube->activeColor = self->color;
-        };
+    NxNEditor(map<int, jptr<QColor>> idToColor, QWidget* parent = nullptr) : AspectRatioWidget(10.5, 7.5, parent) {
+        this->idToColor = idToColor;
+        init();
     }
 };
