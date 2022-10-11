@@ -56,8 +56,6 @@ int main(int argc, char** argv) {
     tlbx->addTab(new EQMarginWidget(scramble), "Scramble");
     tlbx->addTab(new EQMarginWidget(solvedState), "Solved State");
     puzzleColumn->addWidget(tlbx);
-    Puzzle3x3 superflip;
-    superflip.applyMoves("U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2"); // superflip
     scramble->setState(Puzzle3x3());
     solvedState->setState(Puzzle3x3());
 
