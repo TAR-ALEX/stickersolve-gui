@@ -1,4 +1,5 @@
 #include "AspectRatioWidget.hpp"
+#include "NxNeditor.hpp"
 #include "SelectColorButton.hpp"
 #include "SelectColorPanel.hpp"
 #include "VisualCubicPuzzles.hpp"
@@ -18,7 +19,6 @@
 #include <stickersolve/puzzles/Solver3x3.h>
 #include <thread>
 #include <vector>
-#include "NxNeditor.hpp"
 
 // #include "../vendor/src/pruning/pruning.cpp"
 // #include "../vendor/src/pruning/pruningTree.cpp"
@@ -34,7 +34,7 @@ using namespace std;
 int main(int argc, char** argv) {
     cptr<QApplication> app = new QApplication(argc, argv);
     cptr<QMainWindow> mw = new QMainWindow();
-    
+
     auto wid = new EQLayoutWidget<QHBoxLayout>();
     auto puzzleColumn = new QVBoxLayout();
     auto solutionsColumn = new QVBoxLayout();
@@ -51,8 +51,8 @@ int main(int argc, char** argv) {
     auto tlbx = new QTabWidget();
     auto solvedState = new NxNEditor<3>();
     auto scramble = new NxNEditor<3>(solvedState->idToColor);
-    
-    tlbx->setMinimumSize(300,300);
+
+    tlbx->setMinimumSize(300, 300);
     tlbx->addTab(new EQMarginWidget(scramble), "Scramble");
     tlbx->addTab(new EQMarginWidget(solvedState), "Solved State");
     puzzleColumn->addWidget(tlbx);
@@ -95,11 +95,13 @@ int main(int argc, char** argv) {
             file.open(QIODevice::WriteOnly);
             scramble->cube->grab().save(&file, "PNG");
             State pzl = scramble->getState();
+            std::cout << "myState: " << pzl.toString() << endl;
 
             Solver3x3 solver(allowedMoves->text().toStdString());
             solver.cfg->pruiningTablesPath = "./tables";
 
-            auto slnQ = solver.asyncSolveStrings(pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1);
+            auto slnQ =
+                solver.asyncSolveStrings(pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1);
             std::vector<std::string> res;
 
             while (slnQ->hasNext()) {

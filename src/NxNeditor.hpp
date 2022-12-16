@@ -50,6 +50,7 @@ private:
             },
             cube,
         };
+        colorToId = reverseMap(idToColor);
 
         cube->activeColor = colorPanel->color;
 
@@ -73,7 +74,7 @@ public:
         {-1, jptr<QColor>{127, 127, 127}},
     };
 
-    map<jptr<QColor>, int> colorToId = reverseMap(idToColor);
+    map<jptr<QColor>, int> colorToId;
 
 
     State colorsToState(std::vector<jptr<QColor>> qcolors) {
