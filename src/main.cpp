@@ -46,7 +46,11 @@ int main(int argc, char** argv) {
     auto text = new QTextBrowser();
     // text->setMaximumWidth(500);
     solutionsColumn->addWidget(text);
-    solutionsColumn->addWidget(new EQLayoutWidget<QHBoxLayout>({new QProgressBar(), new QPushButton("cancel")}));
+    QProgressBar* progressBar = new QProgressBar();
+    QPushButton* cancelButton = new QPushButton("cancel");
+    solutionsColumn->addWidget(new EQLayoutWidget<QHBoxLayout>({progressBar, cancelButton}));
+    std::function<void(void)> onCancelBtn = []() {};
+    QObject::connect(cancelButton, &QPushButton::clicked, [&](bool checked) { onCancelBtn(); });
 
     auto tlbx = new QTabWidget();
     auto solvedState = new NxNEditor<3>();
@@ -91,6 +95,10 @@ int main(int argc, char** argv) {
     QObject::connect(solveBtn, &QPushButton::clicked, [&](bool checked) {
         QMetaObject::invokeMethod(app.get(), [=] { text->clear(); });
         std::thread t([&]() {
+            QMetaObject::invokeMethod(app.get(), [=] {
+                progressBar->setValue(0);
+                solveBtn->setDisabled(true);
+            });
             QFile file("yourFile.png");
             file.open(QIODevice::WriteOnly);
             scramble->cube->grab().save(&file, "PNG");
@@ -99,6 +107,10 @@ int main(int argc, char** argv) {
 
             Solver3x3 solver(allowedMoves->text().toStdString());
             solver.cfg->pruiningTablesPath = "./tables";
+            solver.progressCallback = [&](int progress) {
+                QMetaObject::invokeMethod(app.get(), [=] { progressBar->setValue(progress); });
+            };
+            onCancelBtn = [&]() { solver.cancel(); };
 
             auto slnQ =
                 solver.asyncSolveStrings(pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1);
@@ -108,6 +120,8 @@ int main(int argc, char** argv) {
                 QString solutionString = QString((slnQ->pop()).c_str());
                 QMetaObject::invokeMethod(app.get(), [=] { text->append(solutionString); });
             }
+            onCancelBtn = []() {};
+            QMetaObject::invokeMethod(app.get(), [=] { solveBtn->setDisabled(false); });
         });
         t.detach();
     });
