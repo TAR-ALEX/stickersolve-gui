@@ -16,6 +16,7 @@ git "https://github.com/TAR-ALEX/clone_ptr_cpp.git" master "./include/" "./vendo
 git "https://github.com/TAR-ALEX/stickersolve.git" master "./include/" "./vendor/include/",
 git "https://github.com/TAR-ALEX/stickersolve.git" master "./src/" "./vendor/src/",
 git "https://github.com/TAR-ALEX/stickersolve.git" master "./vendor.txt" "./vendor/stickersolve.txt",
+git "https://github.com/TAR-ALEX/stickersolve.git" master "./debian.txt" "./vendor/debian.txt",
 
 git "https://github.com/TAR-ALEX/Semaphore.git" main "./include/" "./vendor/include/",
 git "https://github.com/TAR-ALEX/Thread-Safe-Queue.git" main "./include/" "./vendor/include/",
