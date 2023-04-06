@@ -46,9 +46,10 @@ int main(int argc, char** argv) {
     auto text = new QTextBrowser();
     // text->setMaximumWidth(500);
     solutionsColumn->addWidget(text);
+    QProgressBar* progressBarTables = new QProgressBar();
     QProgressBar* progressBar = new QProgressBar();
     QPushButton* cancelButton = new QPushButton("cancel");
-    solutionsColumn->addWidget(new EQLayoutWidget<QHBoxLayout>({progressBar, cancelButton}));
+    solutionsColumn->addWidget(new EQLayoutWidget<QHBoxLayout>({progressBarTables, progressBar, cancelButton}));
     std::function<void(void)> onCancelBtn = []() {};
     QObject::connect(cancelButton, &QPushButton::clicked, [&](bool checked) { onCancelBtn(); });
 
@@ -109,6 +110,9 @@ int main(int argc, char** argv) {
             solver.cfg->pruiningTablesPath = "./tables";
             solver.progressCallback = [&](int progress) {
                 QMetaObject::invokeMethod(app.get(), [=] { progressBar->setValue(progress); });
+            };
+            solver.tableProgressCallback = [&](int progress) {
+                QMetaObject::invokeMethod(app.get(), [=] { progressBarTables->setValue(progress); });
             };
             onCancelBtn = [&]() { solver.cancel(); };
 
