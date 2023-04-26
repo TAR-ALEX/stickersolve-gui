@@ -103,10 +103,12 @@ int main(int argc, char** argv) {
             QFile file("yourFile.png");
             file.open(QIODevice::WriteOnly);
             scramble->cube->grab().save(&file, "PNG");
-            State pzl = scramble->getState();
+            Puzzle3x3 pzl{allowedMoves->text().toStdString()};
+            pzl.state = scramble->getState();
+            pzl.solvedState = solvedState->getState();
             std::cout << "myState: " << pzl.toString() << endl;
 
-            Solver3x3 solver(allowedMoves->text().toStdString());
+            Solver3x3 solver;
             solver.cfg->pruiningTablesPath = "./tables";
             solver.progressCallback = [&](int progress) {
                 QMetaObject::invokeMethod(app.get(), [=] { progressBar->setValue(progress); });
