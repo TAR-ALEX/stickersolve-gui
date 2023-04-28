@@ -56,10 +56,11 @@ int main(int argc, char** argv) {
     auto tlbx = new QTabWidget();
     auto solvedState = new NxNEditor<3>();
     auto scramble = new NxNEditor<3>(solvedState->idToColor);
+    auto activeState = scramble;
 
     tlbx->setMinimumSize(300, 300);
-    tlbx->addTab(new EQMarginWidget(scramble), "Scramble");
-    tlbx->addTab(new EQMarginWidget(solvedState), "Solved State");
+    tlbx->addTab(new EQMarginWidget(scramble), "Initial State");
+    tlbx->addTab(new EQMarginWidget(solvedState), "Final State");
     puzzleColumn->addWidget(tlbx);
     scramble->setState(Puzzle3x3());
     solvedState->setState(Puzzle3x3());
@@ -70,16 +71,21 @@ int main(int argc, char** argv) {
 
     auto allowedMoves = new QLineEdit("U U2 U' R R2 R' F F2 F' D D2 D' L L2 L' B B2 B'");
     auto applyMovesBtn = new QPushButton("apply");
+    auto swapScramble = new QPushButton("swap");
+    auto resetToSolved = new QPushButton("reset");
     auto applyMoves = new QLineEdit("");
     auto searchDepth = new QSpinBox();
     auto numSolutions = new QSpinBox();
+    searchDepth->setRange(1, 999);
+    numSolutions->setRange(-1, INT_MAX);
     searchDepth->setValue(14);
     numSolutions->setValue(-1);
     puzzleColumn->addLayout(configForm);
-    configForm->addRow(QObject::tr("Apply Moves:"), new EQLayoutWidget<QHBoxLayout>({applyMoves, applyMovesBtn}));
+    configForm->addRow(QObject::tr("Apply Moves:"), applyMoves);
+    configForm->addRow("", new EQLayoutWidget<QHBoxLayout>(std::vector<QWidget*>{swapScramble, resetToSolved, applyMovesBtn}));
     configForm->addRow(QObject::tr("Allowed Moves:"), allowedMoves);
     configForm->addRow(QObject::tr("Search Depth:"), searchDepth);
-    configForm->addRow(QObject::tr("Number of Solutions:"), numSolutions);
+    configForm->addRow(QObject::tr("Num Solutions:"), numSolutions);
     auto solveBtn = new QPushButton("solve", wid);
     puzzleColumn->addWidget(solveBtn);
 
@@ -87,47 +93,81 @@ int main(int argc, char** argv) {
 
     QObject::connect(applyMovesBtn, &QPushButton::clicked, [&](bool checked) {
         Puzzle3x3 tmp;
-        tmp.state = scramble->getState();
-        tmp.applyMoves(applyMoves->text().toStdString());
-        scramble->setState(tmp);
+        tmp.state = activeState->getState();
+        try {
+            tmp.applyMoves(applyMoves->text().toStdString());
+            activeState->setState(tmp);
+            activeState->update();
+        } catch (std::runtime_error& e) { QMessageBox::critical(0, "Error", e.what()); }
+    });
+
+    QObject::connect(tlbx, &QTabWidget::currentChanged, [&](int idx) {
+        if (idx == 1) {
+            activeState = solvedState;
+            resetToSolved->hide();
+        } else {
+            activeState = scramble;
+            resetToSolved->show();
+        }
+    });
+
+    QObject::connect(resetToSolved, &QPushButton::clicked, [&](bool checked) {
+        scramble->setState(solvedState->getState());
         scramble->update();
     });
 
+    QObject::connect(swapScramble, &QPushButton::clicked, [&](bool checked) {
+        State slv = solvedState->getState();
+        State scr = scramble->getState();
+        scramble->setState(slv);
+        solvedState->setState(scr);
+        scramble->update();
+        solvedState->update();
+    });
+
+    Solver3x3 solver;
     QObject::connect(solveBtn, &QPushButton::clicked, [&](bool checked) {
         QMetaObject::invokeMethod(app.get(), [=] { text->clear(); });
         std::thread t([&]() {
-            QMetaObject::invokeMethod(app.get(), [=] {
-                progressBar->setValue(0);
-                solveBtn->setDisabled(true);
-            });
-            QFile file("yourFile.png");
-            file.open(QIODevice::WriteOnly);
-            scramble->cube->grab().save(&file, "PNG");
-            Puzzle3x3 pzl{allowedMoves->text().toStdString()};
-            pzl.state = scramble->getState();
-            pzl.solvedState = solvedState->getState();
-            std::cout << "myState: " << pzl.toString() << endl;
+            try {
+                QMetaObject::invokeMethod(app.get(), [=] {
+                    progressBar->setValue(0);
+                    solveBtn->setDisabled(true);
+                });
+                // QFile file("yourFile.png");
+                // file.open(QIODevice::WriteOnly);
+                // scramble->cube->grab().save(&file, "PNG");
+                Puzzle3x3 pzl{allowedMoves->text().toStdString()};
+                pzl.state = scramble->getState();
+                pzl.solvedState = solvedState->getState();
+                std::cout << "myState: " << pzl.toString() << endl;
 
-            Solver3x3 solver;
-            solver.cfg->pruiningTablesPath = "./tables";
-            solver.progressCallback = [&](int progress) {
-                QMetaObject::invokeMethod(app.get(), [=] { progressBar->setValue(progress); });
-            };
-            solver.tableProgressCallback = [&](int progress) {
-                QMetaObject::invokeMethod(app.get(), [=] { progressBarTables->setValue(progress); });
-            };
-            onCancelBtn = [&]() { solver.cancel(); };
+                solver.cfg->pruiningTablesPath = "./tables";
+                solver.progressCallback = [&](int progress) {
+                    QMetaObject::invokeMethod(app.get(), [=] { progressBar->setValue(progress); });
+                };
+                solver.tableProgressCallback = [&](int progress) {
+                    QMetaObject::invokeMethod(app.get(), [=] { progressBarTables->setValue(progress); });
+                };
+                onCancelBtn = [&]() { solver.cancel(); };
 
-            auto slnQ =
-                solver.asyncSolveStrings(pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1);
-            std::vector<std::string> res;
+                auto slnQ = solver.asyncSolveStrings(
+                    pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1
+                );
+                std::vector<std::string> res;
 
-            while (slnQ->hasNext()) {
-                QString solutionString = QString((slnQ->pop()).c_str());
-                QMetaObject::invokeMethod(app.get(), [=] { text->append(solutionString); });
+                while (slnQ->hasNext()) {
+                    QString solutionString = QString((slnQ->pop()).c_str());
+                    QMetaObject::invokeMethod(app.get(), [=] { text->append(solutionString); });
+                }
+                onCancelBtn = []() {};
+                QMetaObject::invokeMethod(app.get(), [=] { solveBtn->setDisabled(false); });
+            } catch (std::runtime_error& e) {
+                QMetaObject::invokeMethod(app.get(), [&, e] {
+                    QMessageBox::critical(0, "Error", e.what());
+                    solveBtn->setDisabled(false);
+                });
             }
-            onCancelBtn = []() {};
-            QMetaObject::invokeMethod(app.get(), [=] { solveBtn->setDisabled(false); });
         });
         t.detach();
     });

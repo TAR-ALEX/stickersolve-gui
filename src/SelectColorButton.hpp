@@ -32,7 +32,7 @@ public:
     void changeColor() {
         QColor newColor = QColorDialog::getColor(polyBtn->color.value(), parentWidget());
         if (newColor.isValid()) polyBtn->color.value() = newColor;
-        cout << "color=" << polyBtn->color->name().toStdString() << "\n";
+        // cout << "color=" << polyBtn->color->name().toStdString() << "\n";
     }
 
     std::function<void(SelectColorButton*, Qt::MouseButtons)> onClick = [](auto, auto) {};

@@ -56,7 +56,8 @@ public:
             cube->tiles[i]->color = colors[i];
             cube->tiles[i]->onClick = [=](auto self, auto mouse) {
                 if (mouse == Qt::MouseButton::RightButton) {
-                    self->color.value() = QColorDialog::getColor(self->color.value(), this);
+                    auto newColor = QColorDialog::getColor(self->color.value(), this);
+                    if (newColor.isValid()) self->color.value() = newColor;
                     self->update();
                 }
                 this->color = self->color;
