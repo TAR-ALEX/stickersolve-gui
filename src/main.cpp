@@ -73,6 +73,7 @@ int main(int argc, char** argv) {
     auto applyMovesBtn = new QPushButton("apply");
     auto swapScramble = new QPushButton("swap");
     auto resetToSolved = new QPushButton("reset");
+    auto cleanBtn = new QPushButton("clean");
     auto applyMoves = new QLineEdit("");
     auto searchDepth = new QSpinBox();
     auto numSolutions = new QSpinBox();
@@ -82,7 +83,7 @@ int main(int argc, char** argv) {
     numSolutions->setValue(-1);
     puzzleColumn->addLayout(configForm);
     configForm->addRow(QObject::tr("Apply Moves:"), applyMoves);
-    configForm->addRow("", new EQLayoutWidget<QHBoxLayout>(std::vector<QWidget*>{swapScramble, resetToSolved, applyMovesBtn}));
+    configForm->addRow(new EQLayoutWidget<QHBoxLayout>(std::vector<QWidget*>{cleanBtn, swapScramble, resetToSolved, applyMovesBtn}));
     configForm->addRow(QObject::tr("Allowed Moves:"), allowedMoves);
     configForm->addRow(QObject::tr("Search Depth:"), searchDepth);
     configForm->addRow(QObject::tr("Num Solutions:"), numSolutions);
@@ -104,16 +105,28 @@ int main(int argc, char** argv) {
     QObject::connect(tlbx, &QTabWidget::currentChanged, [&](int idx) {
         if (idx == 1) {
             activeState = solvedState;
-            resetToSolved->hide();
+            // resetToSolved->hide();
         } else {
             activeState = scramble;
-            resetToSolved->show();
+            // resetToSolved->show();
         }
     });
 
+    QObject::connect(cleanBtn, &QPushButton::clicked, [&](bool checked) {
+        State s = activeState->getState();
+        for(auto& color: s) color = -1;
+        activeState->setState(s);
+        activeState->update();
+    });
+
     QObject::connect(resetToSolved, &QPushButton::clicked, [&](bool checked) {
-        scramble->setState(solvedState->getState());
-        scramble->update();
+        if(activeState == scramble){
+            scramble->setState(solvedState->getState());
+            scramble->update();
+        }else{
+            solvedState->setState(Puzzle3x3().solvedState);
+            solvedState->update();
+        }
     });
 
     QObject::connect(swapScramble, &QPushButton::clicked, [&](bool checked) {
