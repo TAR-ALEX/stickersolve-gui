@@ -1,5 +1,3 @@
-include mint-vera.txt,
-
 deb-recurse-limit 2,
 
 deb qtbase5-dev "./usr/include/x86_64-linux-gnu/qt5/" "./vendor/include/",

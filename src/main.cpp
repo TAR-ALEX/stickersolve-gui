@@ -20,14 +20,6 @@
 #include <thread>
 #include <vector>
 
-// #include "../vendor/src/pruning/pruning.cpp"
-// #include "../vendor/src/pruning/pruningTree.cpp"
-// #include "../vendor/src/pruning/redundancy.cpp"
-
-// #include "../vendor/src/solver/puzzle.cpp"
-// #include "../vendor/src/solver/puzzleSolver.cpp"
-// #include "../vendor/src/solver/puzzleState.cpp"
-
 using namespace estd::shortnames;
 using namespace std;
 
@@ -83,10 +75,15 @@ int main(int argc, char** argv) {
     numSolutions->setValue(-1);
     puzzleColumn->addLayout(configForm);
     configForm->addRow(QObject::tr("Apply Moves:"), applyMoves);
-    configForm->addRow(new EQLayoutWidget<QHBoxLayout>(std::vector<QWidget*>{cleanBtn, swapScramble, resetToSolved, applyMovesBtn}));
+    configForm->addRow(new EQLayoutWidget<QHBoxLayout>({cleanBtn, swapScramble, resetToSolved, applyMovesBtn}));
     configForm->addRow(QObject::tr("Allowed Moves:"), allowedMoves);
     configForm->addRow(QObject::tr("Search Depth:"), searchDepth);
     configForm->addRow(QObject::tr("Num Solutions:"), numSolutions);
+
+    auto sortSelector = new QComboBox();
+    sortSelector->addItems({"disabled", "length", "fingertricks"});
+    configForm->addRow(QObject::tr("Sorting:"), sortSelector);
+
     auto solveBtn = new QPushButton("solve", wid);
     puzzleColumn->addWidget(solveBtn);
 
@@ -114,16 +111,16 @@ int main(int argc, char** argv) {
 
     QObject::connect(cleanBtn, &QPushButton::clicked, [&](bool checked) {
         State s = activeState->getState();
-        for(auto& color: s) color = -1;
+        for (auto& color : s) color = -1;
         activeState->setState(s);
         activeState->update();
     });
 
     QObject::connect(resetToSolved, &QPushButton::clicked, [&](bool checked) {
-        if(activeState == scramble){
+        if (activeState == scramble) {
             scramble->setState(solvedState->getState());
             scramble->update();
-        }else{
+        } else {
             solvedState->setState(Puzzle3x3().solvedState);
             solvedState->update();
         }
@@ -140,7 +137,10 @@ int main(int argc, char** argv) {
 
     Solver3x3 solver;
     QObject::connect(solveBtn, &QPushButton::clicked, [&](bool checked) {
-        QMetaObject::invokeMethod(app.get(), [=] { text->clear(); });
+        QMetaObject::invokeMethod(app.get(), [=] {
+            text->clear();
+            text->clearHistory();
+        });
         std::thread t([&]() {
             try {
                 QMetaObject::invokeMethod(app.get(), [=] {
@@ -167,11 +167,28 @@ int main(int argc, char** argv) {
                 auto slnQ = solver.asyncSolveStrings(
                     pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1
                 );
-                std::vector<std::string> res;
+                std::vector<std::string> allSolutions;
 
                 while (slnQ->hasNext()) {
-                    QString solutionString = QString((slnQ->pop()).c_str());
-                    QMetaObject::invokeMethod(app.get(), [=] { text->append(solutionString); });
+                    std::string solution = slnQ->pop();
+                    allSolutions.push_back(solution);
+                    QString solutionString = QString(solution.c_str());
+                    QMetaObject::invokeMethod(app.get(), [=] {
+                        text->append(solutionString);
+                        text->clearHistory();
+                    });
+                }
+                if (sortSelector->currentText() != "disabled") {
+                    std::string sortedSolutions = "";
+                    if (sortSelector->currentText() == "fingertricks")
+                        sortedSolutions = FingertrickSolutionSorter().sortString(allSolutions);
+                    else if (sortSelector->currentText() == "length")
+                        sortedSolutions = SolutionSorter().sortString(allSolutions);
+                    QMetaObject::invokeMethod(app.get(), [=, &text] {
+                        text->clear();
+                        text->clearHistory();
+                        text->append(QString(sortedSolutions.c_str()));
+                    });
                 }
                 onCancelBtn = []() {};
                 QMetaObject::invokeMethod(app.get(), [=] { solveBtn->setDisabled(false); });
