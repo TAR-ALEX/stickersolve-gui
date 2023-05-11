@@ -7,6 +7,7 @@
 #include <QtGui/QPainter>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QColorDialog>
+#include <QtWidgets/QDoubleSpinBox>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
@@ -69,14 +70,18 @@ int main(int argc, char** argv) {
     auto applyMoves = new QLineEdit("");
     auto searchDepth = new QSpinBox();
     auto numSolutions = new QSpinBox();
+    auto maxMemoryLimitGb = new QDoubleSpinBox();
     searchDepth->setRange(1, 999);
     numSolutions->setRange(-1, INT_MAX);
     searchDepth->setValue(14);
     numSolutions->setValue(-1);
+    maxMemoryLimitGb->setValue(9);
     puzzleColumn->addLayout(configForm);
     configForm->addRow(QObject::tr("Apply Moves:"), applyMoves);
     configForm->addRow(new EQLayoutWidget<QHBoxLayout>({cleanBtn, swapScramble, resetToSolved, applyMovesBtn}));
     configForm->addRow(QObject::tr("Allowed Moves:"), allowedMoves);
+    configForm->addRow(QObject::tr("Max Memory (Gb):"), maxMemoryLimitGb);
+
     configForm->addRow(QObject::tr("Search Depth:"), searchDepth);
     configForm->addRow(QObject::tr("Num Solutions:"), numSolutions);
 
@@ -88,6 +93,24 @@ int main(int argc, char** argv) {
     puzzleColumn->addWidget(solveBtn);
 
     mw->show();
+
+    std::vector<std::string> allSolutions;
+
+    QObject::connect(sortSelector, &QComboBox::currentTextChanged, [&](const QString& sel) {
+        std::string sortedSolutions = "";
+        if (sel == "fingertricks")
+            sortedSolutions = FingertrickSolutionSorter().sortString(allSolutions);
+        else if (sel == "length")
+            sortedSolutions = SolutionSorter().sortString(allSolutions);
+        else{
+            for(auto& sol: allSolutions) sortedSolutions += sol + "\n";
+        }
+        QMetaObject::invokeMethod(app.get(), [=, &text] {
+            text->clear();
+            text->clearHistory();
+            text->append(QString(sortedSolutions.c_str()));
+        });
+    });
 
     QObject::connect(applyMovesBtn, &QPushButton::clicked, [&](bool checked) {
         Puzzle3x3 tmp;
@@ -156,6 +179,7 @@ int main(int argc, char** argv) {
                 std::cout << "myState: " << pzl.toString() << endl;
 
                 solver.cfg->pruiningTablesPath = "./tables";
+                solver.cfg->maxMemoryInGb = maxMemoryLimitGb->value();
                 solver.progressCallback = [&](int progress) {
                     QMetaObject::invokeMethod(app.get(), [=] { progressBar->setValue(progress); });
                 };
@@ -167,7 +191,7 @@ int main(int argc, char** argv) {
                 auto slnQ = solver.asyncSolveStrings(
                     pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1
                 );
-                std::vector<std::string> allSolutions;
+                allSolutions.clear();
 
                 while (slnQ->hasNext()) {
                     std::string solution = slnQ->pop();
