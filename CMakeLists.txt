@@ -19,6 +19,8 @@ endif(WIN32)
 
 # the -I flag in gcc
 include_directories(${PROJECT_SOURCE_DIR}/include/, ${PROJECT_SOURCE_DIR}/vendor/include/) 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH on)
+set(CMAKE_INSTALL_RPATH "./vendor/lib" "./lib")
 link_directories(${PROJECT_SOURCE_DIR}/vendor/lib)
 
 file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*" "${PROJECT_SOURCE_DIR}/include/*")
