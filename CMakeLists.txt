@@ -7,17 +7,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-# set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -no-pie -Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -no-pie -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-# set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -zopt -flto -fremap-arrays -mllvm -reduce-array-computations=3 -faggressive-loop-transform") # for amd compiler
 
-if(WIN32)
-  # see https://blog.kitware.com/create-dlls-on-windows-without-declspec-using-new-cmake-export-all-feature/
-  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif(WIN32)
+set(Qt5_DIR ./vendor/usr/lib/x86_64-linux-gnu/cmake/Qt5)
 
-# the -I flag in gcc
+find_package(Qt5 REQUIRED Core Widgets Gui PATHS ./vendor/lib/cmake)
+
 include_directories(${PROJECT_SOURCE_DIR}/include/, ${PROJECT_SOURCE_DIR}/vendor/include/) 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH on)
 set(CMAKE_INSTALL_RPATH "./vendor/lib" "./lib")
@@ -26,12 +22,28 @@ link_directories(${PROJECT_SOURCE_DIR}/vendor/lib)
 file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*" "${PROJECT_SOURCE_DIR}/include/*")
 file(GLOB_RECURSE VENDOR_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/vendor/src/*" "${PROJECT_SOURCE_DIR}/vendor/include/*")
 
-# creates ./build/bin/runner
-add_executable(${PROJECT_NAME} ${APP_SOURCES} ${VENDOR_SOURCES})
-target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
-target_link_libraries(${PROJECT_NAME} pthread Qt5PrintSupport Qt5Network Qt5Widgets Qt5Gui Qt5Core -l:libboost_system.a -l:libboost_iostreams.a -l:libboost_filesystem.a)
 
-# shared library
-# set(LIBRARY_NAME World)
-# add_library(${LIBRARY_NAME} SHARED ${LIB_SOURCES})
-# target_link_libraries(${PROJECT_NAME} ${LIBRARY_NAME})
+if(WIN32)
+  add_executable(${PROJECT_NAME} WIN32 ${APP_SOURCES} ${VENDOR_SOURCES})
+  target_compile_options(${PROJECT_NAME} PRIVATE)
+  # set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
+  target_link_libraries(${PROJECT_NAME} 
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Widgets
+    ${ADDITIONAL_LIBRARIES}
+  )
+else()
+  add_executable(${PROJECT_NAME} ${APP_SOURCES} ${VENDOR_SOURCES})
+  target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
+  target_link_libraries(${PROJECT_NAME} 
+    pthread
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Widgets
+    -l:libboost_system.a 
+    -l:libboost_iostreams.a 
+    -l:libboost_filesystem.a
+    ${ADDITIONAL_LIBRARIES}
+  )
+endif()

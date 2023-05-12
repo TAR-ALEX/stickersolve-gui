@@ -1,8 +1,6 @@
 deb-recurse-limit 2,
 
-deb qtbase5-dev "./usr/include/x86_64-linux-gnu/qt5/" "./vendor/include/",
-deb qtbase5-dev "./usr/lib/x86_64-linux-gnu/" "./vendor/lib/",
-deb qtbase5-dev "./lib/" "./vendor/lib/",
+deb "qtbase5-dev" "./usr/" "./vendor/usr/",
 
 deb-recurse-limit 2,
 deb libgl-dev "./usr/include/GL/" "./vendor/include/GL/",
