@@ -14,7 +14,7 @@ The recommended specs for the solver are 9 GB of free memory (can be configured 
 - for color scheme changes, right click on the 1x1x1 cube to bring up a color selector.
 - on the 3x3x3 cube left click to paint a sticker, right or middle click to set the sticker to the grey/(dont care) color.
 
-## UI Controlls
+## UI Controls
 - solved state - the state you wish to reach at the end of a solution
 - initial state - the state you start with
 - clean - clears the puzzle to the gray color
