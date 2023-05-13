@@ -6,6 +6,8 @@ Stickersolve-gui is a GUI application that is capable of finding solutions to th
 Stickersolve-gui uses the [stickersolve](https://github.com/TAR-ALEX/stickersolve.git) library to solve the cube. This solver is comparable to the legendary [CubeExplorer](http://kociemba.org/cube.htm) (even beating it in some circumstances on modern hardware). However, the hardware requirements for this solver are quite demanding to achieve its full potential.
 The recommended specs for the solver are 9 GB of free memory (can be configured to use less, performance will suffer) and a good cpu with lots of cores. This application will utilize concurrency and memory bandwidth to the maximum. Unlike CubeExplorer, this solver is geared towards finding all solutions and not just one solution (although it can do this). For example: this solver can find all the solutions to the superflip that are 20 moves within less than a day (approx. 3 hours on a Ryzen 1700). In theory, this solver should run without any problems on the major operating systems (Mac, Linux, Windows) although a MacOS build is not yet available.
 
+![image](https://github.com/TAR-ALEX/stickersolve-gui/assets/71244213/11bcc018-b9e2-4482-983c-d01ca39492c4)
+
 # Usage
 ## 3x3x3 Painter widget
 - the color selector is the 1x1x1 cube at the bottom, simply left click on the color to select it.
