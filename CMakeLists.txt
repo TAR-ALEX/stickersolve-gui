@@ -44,6 +44,5 @@ else()
     -l:libboost_system.a 
     -l:libboost_iostreams.a 
     -l:libboost_filesystem.a
-    ${ADDITIONAL_LIBRARIES}
   )
 endif()
