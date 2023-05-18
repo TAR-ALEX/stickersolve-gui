@@ -90,7 +90,8 @@ int main(int argc, char** argv) {
     configForm->addRow(QObject::tr("Sorting:"), sortSelector);
 
     auto solveBtn = new QPushButton("solve", wid);
-    puzzleColumn->addWidget(solveBtn);
+    auto solveIncrementalBtn = new QPushButton("incremental solve", wid);
+    puzzleColumn->addWidget(new EQLayoutWidget<QHBoxLayout>({solveIncrementalBtn, solveBtn}));
 
     mw->show();
 
@@ -98,12 +99,11 @@ int main(int argc, char** argv) {
 
     QObject::connect(sortSelector, &QComboBox::currentTextChanged, [&](const QString& sel) {
         std::string sortedSolutions = "";
-        if (sel == "fingertricks")
-            sortedSolutions = FingertrickSolutionSorter().sortString(allSolutions);
+        if (sel == "fingertricks") sortedSolutions = FingertrickSolutionSorter().sortString(allSolutions);
         else if (sel == "length")
             sortedSolutions = SolutionSorter().sortString(allSolutions);
-        else{
-            for(auto& sol: allSolutions) sortedSolutions += sol + "\n";
+        else {
+            for (auto& sol : allSolutions) sortedSolutions += sol + "\n";
         }
         QMetaObject::invokeMethod(app.get(), [=, &text] {
             text->clear();
@@ -159,16 +159,18 @@ int main(int argc, char** argv) {
     });
 
     Solver3x3 solver;
-    QObject::connect(solveBtn, &QPushButton::clicked, [&](bool checked) {
+
+    auto solveCallback = [&](bool incremental) {
         QMetaObject::invokeMethod(app.get(), [=] {
             text->clear();
             text->clearHistory();
         });
-        std::thread t([&]() {
+        std::thread t([&, incremental]() {
             try {
                 QMetaObject::invokeMethod(app.get(), [=] {
                     progressBar->setValue(0);
                     solveBtn->setDisabled(true);
+                    solveIncrementalBtn->setDisabled(true);
                 });
                 // QFile file("yourFile.png");
                 // file.open(QIODevice::WriteOnly);
@@ -188,9 +190,17 @@ int main(int argc, char** argv) {
                 };
                 onCancelBtn = [&]() { solver.cancel(); };
 
-                auto slnQ = solver.asyncSolveStrings(
-                    pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1
-                );
+                std::shared_ptr<estd::thread_safe_queue<std::string>> slnQ;
+                if (incremental) {
+                    slnQ = solver.asyncIncrementalSolveStrings(
+                        pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1
+                    );
+                } else {
+                    slnQ = solver.asyncSolveStrings(
+                        pzl, searchDepth->value(), numSolutions->value() ? numSolutions->value() : -1
+                    );
+                }
+
                 allSolutions.clear();
 
                 while (slnQ->hasNext()) {
@@ -215,15 +225,22 @@ int main(int argc, char** argv) {
                     });
                 }
                 onCancelBtn = []() {};
-                QMetaObject::invokeMethod(app.get(), [=] { solveBtn->setDisabled(false); });
+                QMetaObject::invokeMethod(app.get(), [=] {
+                    solveBtn->setDisabled(false);
+                    solveIncrementalBtn->setDisabled(false);
+                });
             } catch (std::runtime_error& e) {
                 QMetaObject::invokeMethod(app.get(), [&, e] {
                     QMessageBox::critical(0, "Error", e.what());
                     solveBtn->setDisabled(false);
+                    solveIncrementalBtn->setDisabled(false);
                 });
             }
         });
         t.detach();
-    });
+    };
+
+    QObject::connect(solveBtn, &QPushButton::clicked, [&]() { solveCallback(false); });
+    QObject::connect(solveIncrementalBtn, &QPushButton::clicked, [&]() { solveCallback(true); });
     return app->exec();
 }
