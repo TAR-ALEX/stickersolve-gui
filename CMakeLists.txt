@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -no-pie -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O3 -Wall -pg") # gprof stickersolve-gui gmon.out > gmon.txt
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 set(Qt5_DIR ./vendor/usr/lib/x86_64-linux-gnu/cmake/Qt5)

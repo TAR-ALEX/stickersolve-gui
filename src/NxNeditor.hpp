@@ -47,6 +47,7 @@ private:
                 idToColor[4],
                 idToColor[5],
                 idToColor[-1],
+                idToColor[-2],
             },
             cube,
         };
@@ -72,6 +73,7 @@ public:
         {4, jptr<QColor>{255, 144, 0}},
         {5, jptr<QColor>{0, 100, 255}},
         {-1, jptr<QColor>{127, 127, 127}},
+        {-2, jptr<QColor>{50, 50, 50}},
     };
 
     map<jptr<QColor>, int> colorToId;
