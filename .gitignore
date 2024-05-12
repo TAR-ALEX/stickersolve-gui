@@ -8,3 +8,5 @@
 /Release/stickersolve-gui.exe
 /gmon.out
 /gmon.txt
+/cfg.txt
+/releases/

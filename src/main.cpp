@@ -1,4 +1,5 @@
 #include "AspectRatioWidget.hpp"
+#include "ConfigParser.h"
 #include "NxNeditor.hpp"
 #include "SelectColorButton.hpp"
 #include "SelectColorPanel.hpp"
@@ -24,7 +25,10 @@
 using namespace estd::shortnames;
 using namespace std;
 
+ConfigFile cfgFile{"./cfg.txt"};
+
 int main(int argc, char** argv) {
+    cfgFile.parse();
     cptr<QApplication> app = new QApplication(argc, argv);
     cptr<QMainWindow> mw = new QMainWindow();
 
@@ -75,7 +79,7 @@ int main(int argc, char** argv) {
     numSolutions->setRange(-1, INT_MAX);
     searchDepth->setValue(14);
     numSolutions->setValue(-1);
-    maxMemoryLimitGb->setValue(9);
+    maxMemoryLimitGb->setValue(cfgFile.maxMemory);
     puzzleColumn->addLayout(configForm);
     configForm->addRow(QObject::tr("Apply Moves:"), applyMoves);
     configForm->addRow(new EQLayoutWidget<QHBoxLayout>({cleanBtn, swapScramble, resetToSolved, applyMovesBtn}));
@@ -242,5 +246,9 @@ int main(int argc, char** argv) {
 
     QObject::connect(solveBtn, &QPushButton::clicked, [&]() { solveCallback(false); });
     QObject::connect(solveIncrementalBtn, &QPushButton::clicked, [&]() { solveCallback(true); });
-    return app->exec();
+    QObject::connect(maxMemoryLimitGb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&](double val) { cfgFile.maxMemory = val; });
+
+    int errcode = app->exec();
+    cfgFile.save();
+    return errcode;
 }
