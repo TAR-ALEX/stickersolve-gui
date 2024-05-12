@@ -25,7 +25,15 @@
 using namespace estd::shortnames;
 using namespace std;
 
-ConfigFile cfgFile{"./cfg.txt"};
+#ifdef __APPLE__
+std::string tablesPath = (QDir::homePath()+"/Library/Application Support/stickersolve-gui/tables").toUtf8().constData();
+std::string cfgPath = (QDir::homePath()+"/Library/Application Support/stickersolve-gui/cfg.txt").toUtf8().constData();
+#else
+std::string tablesPath = "./tables";
+std::string cfgPath = "./cfg.txt";
+#endif
+
+ConfigFile cfgFile{cfgPath};
 
 int main(int argc, char** argv) {
     cfgFile.parse();
@@ -65,6 +73,7 @@ int main(int argc, char** argv) {
     puzzleColumn->addWidget(tlbx);
 
     auto configForm = new QFormLayout();
+    configForm->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
     auto allowedMoves = new QLineEdit("U U2 U' R R2 R' F F2 F' D D2 D' L L2 L' B B2 B'");
     auto applyMovesBtn = new QPushButton("apply");
@@ -184,7 +193,7 @@ int main(int argc, char** argv) {
                 pzl.solvedState = solvedState->getState();
                 std::cout << "myState: " << pzl.toString() << endl;
 
-                solver.cfg->pruiningTablesPath = "./tables";
+                solver.cfg->pruiningTablesPath = tablesPath;
                 solver.cfg->maxMemoryInGb = maxMemoryLimitGb->value();
                 solver.progressCallback = [&](int progress) {
                     QMetaObject::invokeMethod(app.get(), [=] { progressBar->setValue(progress); });

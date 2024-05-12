@@ -10,3 +10,5 @@
 /gmon.txt
 /cfg.txt
 /releases/
+/stickersolve-gui.app
+.DS_Store

@@ -57,3 +57,17 @@ mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build 
 # Building From Source On Windows
 
 On windows I recommend using the [dep-pull](https://github.com/TAR-ALEX/Cpp-Dependency-Manager.git) command to install only the git dependencies. (deb will not work on windows) Alternatively, files could be copied over manually from each git repo into the `./vendor/` directory. A build of Qt must be put into the vendor directory, and the same is true for the boost library.
+
+# Building From Source On MacOS
+
+Do a `brew install qt5` and a `brew install boost`.
+
+Feed the installed library directories to the cmake file (locations marked as comments in cmake).
+
+build the app using cmake but only the release target is supported. 
+
+```
+mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . --target stickersolve-gui --config Release && cd ../
+```
+
+for distribution: to package the file into an app do a `macdeployqt stickersolve-gui.app`  command. edit the plist as needed and create a dmg using `create-dmg`
