@@ -1,10 +1,10 @@
 # stickersolve-gui
 
 Stickersolve-gui is a GUI application that is capable of finding solutions to the Rubik's cube at fast speeds. It is also capable of rating solution based on speed optimality (for fingertricks).
-### The latest release can be found here for windows and linux: [1.0.0](https://github.com/TAR-ALEX/stickersolve-gui/releases/tag/1.0.0)
+### The latest release can be found here for windows and linux: [1.1.0](https://github.com/TAR-ALEX/stickersolve-gui/releases/tag/1.1.0)
 
-Stickersolve-gui uses the [stickersolve](https://github.com/TAR-ALEX/stickersolve.git) library to solve the cube. This solver is comparable to the legendary [CubeExplorer](http://kociemba.org/cube.htm) (even beating it in some circumstances on modern hardware). However, the hardware requirements for this solver are quite demanding to achieve its full potential.
-The recommended specs for the solver are 9 GB of free memory (can be configured to use less, performance will suffer) and a good cpu with lots of cores. This application will utilize concurrency and memory bandwidth to the maximum. Unlike CubeExplorer, this solver is geared towards finding all solutions and not just one solution (although it can do this). For example: this solver can find all the solutions to the superflip that are 20 moves within less than a day (approx. 3 hours on a Ryzen 1700). In theory, this solver should run without any problems on the major operating systems (Mac, Linux, Windows) although a MacOS build is not yet available.
+Stickersolve-gui uses the [stickersolve](https://github.com/TAR-ALEX/stickersolve.git) library to solve the cube, which is where all of the solving code resides. This repo does not contain any of the backend solving code, only the GUI portion is here. This solver is comparable to the legendary [CubeExplorer](http://kociemba.org/cube.htm) (even beating it in some circumstances on modern hardware). However, the hardware requirements for this solver are more demanding to achieve its full potential.
+The recommended specs for the solver are 9 GB of free memory (can be configured to use less, performance will suffer) and a good cpu with lots of cores. This application will utilize concurrency and memory bandwidth to the maximum. Unlike CubeExplorer, this solver is geared towards finding all solutions and not just one solution (although it can do this). For example: this solver can find all the solutions to the superflip that are 20 moves within less than a day (approx. 2 hours on a Ryzen 1700). stickersolve is buildable on all 3 major platforms (Windows, Linux, MacOS) and has a raspberry pi build.
 
 ![image](https://github.com/TAR-ALEX/stickersolve-gui/assets/71244213/11bcc018-b9e2-4482-983c-d01ca39492c4)
 
@@ -29,7 +29,8 @@ The recommended specs for the solver are 9 GB of free memory (can be configured 
     - disabled - print the solutions as they are found
     - length - sort the solutions based on the number of moves taken
     - fingertricks - rate the solutions based on human fingertricks (BETA, does not support slice or wide moves, except wide r and l)
-- solve - Starts the solver
+- solve - Starts the solver, will find solutions in any order (slightly faster, but not as useful for 1 solution)
+- incremental solve - Starts the solver and iterates all depth from 1 to "search depth" Guarantees to find the smallest solutions first.
 - cancel - Aborts the solver. Can also abort the table generation phase, the button may need to be pressed several times to cancel table generation.
 # Building From Source On Debian Based Linux
 
